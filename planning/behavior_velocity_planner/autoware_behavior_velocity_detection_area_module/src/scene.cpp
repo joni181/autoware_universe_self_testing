@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <cassert>
+
 #include "scene.hpp"
 
 #include "utils.hpp"
@@ -39,6 +41,77 @@ namespace autoware::behavior_velocity_planner
 using autoware::motion_utils::calcLongitudinalOffsetPose;
 using autoware::motion_utils::calcSignedArcLength;
 
+//=== self-testing changes ===
+
+class DetectionAreaTestable final : public IDetectionAreaTestable
+{
+public:
+  explicit DetectionAreaTestable(DetectionAreaModule & module) : module_(module) {}
+
+  //pass the function calls to the module under test (DetectionAreaModule)
+  void print_detected_obstacle(
+    const std::vector<geometry_msgs::msg::Point> & obstacle_points,
+    const geometry_msgs::msg::Pose & self_pose) const override
+  {
+    module_.print_detected_obstacle(obstacle_points, self_pose);
+  }
+
+  void finalizeStopPoint(
+    PathWithLaneId * path,
+    const geometry_msgs::msg::Pose & stop_pose,
+    const geometry_msgs::msg::Pose & modified_stop_pose,
+    const size_t modified_stop_line_seg_idx,
+    const geometry_msgs::msg::Pose & self_pose,
+    const std::string & detection_source,
+    const std::string & policy_name,
+    IDetectionAreaTestable::State prev_state
+  ) override
+  {
+    module_.finalizeStopPoint(
+      path, stop_pose, modified_stop_pose, modified_stop_line_seg_idx, self_pose, detection_source, 
+      policy_name, toModuleState(prev_state));
+  }
+
+  bool handleUnstoppableGoPolicy() override { return module_.handleUnstoppableGoPolicy(); }
+
+  bool handleUnstoppableForceStopPolicy(
+    PathWithLaneId * path, const geometry_msgs::msg::Pose & stop_pose,
+    const geometry_msgs::msg::Pose & modified_stop_pose, const size_t modified_stop_line_seg_idx,
+    const geometry_msgs::msg::Pose & self_pose, const std::string & detection_source) override
+  {
+    return module_.handleUnstoppableForceStopPolicy(
+      path, stop_pose, modified_stop_pose, modified_stop_line_seg_idx, self_pose, detection_source);
+  }
+
+  bool handleUnstoppableStopAfterLinePolicy(
+    PathWithLaneId * path, const PathWithLaneId & original_path,
+    const geometry_msgs::msg::Pose & stop_pose, geometry_msgs::msg::Pose & modified_stop_pose,
+    size_t & modified_stop_line_seg_idx, const geometry_msgs::msg::Pose & self_pose,
+    const double current_velocity, const double stop_dist,
+    const std::string & detection_source) override
+  {
+    return module_.handleUnstoppableStopAfterLinePolicy(
+      path, original_path, stop_pose, modified_stop_pose, modified_stop_line_seg_idx, self_pose,
+      current_velocity, stop_dist, detection_source);
+  }
+  private:
+  static DetectionAreaModule::State toModuleState(const IDetectionAreaTestable::State s)
+  {
+    switch (s) {
+      case IDetectionAreaTestable::State::GO:
+        return DetectionAreaModule::State::GO;
+      case IDetectionAreaTestable::State::STOP:
+        return DetectionAreaModule::State::STOP;
+    }
+    // Defensive fallback (should be unreachable).
+    return DetectionAreaModule::State::GO;
+  }
+
+  DetectionAreaModule & module_;
+};
+
+//============================
+
 DetectionAreaModule::DetectionAreaModule(
   const int64_t module_id, const int64_t lane_id,
   const lanelet::autoware::DetectionArea & detection_area_reg_elem,
@@ -54,6 +127,7 @@ DetectionAreaModule::DetectionAreaModule(
   planner_param_(planner_param),
   debug_data_()
 {
+  testable_ = std::make_unique<DetectionAreaTestable>(*this); //"adapter" instance
 }
 
 void DetectionAreaModule::print_detected_obstacle(
@@ -347,4 +421,22 @@ bool DetectionAreaModule::modifyPathVelocity(PathWithLaneId * path)
 
   return true;
 }
+
+// Required when DetectionAreaModule owns `std::unique_ptr<DetectionAreaTestable>` declared using only a
+// forward declaration in the header: define destructor where DetectionAreaTestable is complete.
+DetectionAreaModule::~DetectionAreaModule() = default;
+
+// Accessors for the testable interface
+IDetectionAreaTestable & DetectionAreaModule::testable()
+{
+  assert(testable_);
+  return *testable_;
+}
+
+const IDetectionAreaTestable & DetectionAreaModule::testable() const
+{
+  assert(testable_);
+  return *testable_;
+}
+
 }  // namespace autoware::behavior_velocity_planner

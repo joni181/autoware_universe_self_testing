@@ -15,7 +15,13 @@ if(BUILD_TESTING)
   ament_add_ros_isolated_gtest(test_${PROJECT_NAME}
     test/test_utils.cpp
     test/test_node_interface.cpp
+    test/test_detection_area_testable_smoke.cpp
   )
+
+  target_include_directories(test_${PROJECT_NAME} PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
+  )
+
   target_link_libraries(test_${PROJECT_NAME} ${PROJECT_NAME})
 endif()
 

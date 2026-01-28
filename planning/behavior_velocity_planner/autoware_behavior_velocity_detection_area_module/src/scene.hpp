@@ -32,12 +32,16 @@
 
 #include <lanelet2_core/LaneletMap.h>
 
+#include "i_detection_area_testable.hpp"
+
 namespace autoware::behavior_velocity_planner
 {
 using PathIndexWithPose = std::pair<size_t, geometry_msgs::msg::Pose>;  // front index, pose
 using PathIndexWithPoint2d = std::pair<size_t, Point2d>;                // front index, point2d
 using PathIndexWithOffset = std::pair<size_t, double>;                  // front index, offset
 using autoware_internal_planning_msgs::msg::PathWithLaneId;
+
+class DetectionAreaTestable;
 
 class DetectionAreaModule : public SceneModuleInterfaceWithRTC
 {
@@ -96,6 +100,17 @@ public:
     const std::shared_ptr<planning_factor_interface::PlanningFactorInterface>
       planning_factor_interface);
 
+  //=== self-testing changes ===
+
+  // out-of-line destructor required because unique_ptr holds incomplete type in header
+  ~DetectionAreaModule() override;
+
+  // expose the adapter (DetectionAreaTestable) as the interface (IDetectionAreaTestable)
+  IDetectionAreaTestable & testable();
+  const IDetectionAreaTestable & testable() const;
+
+  //============================
+
   bool modifyPathVelocity(PathWithLaneId * path) override;
 
   visualization_msgs::msg::MarkerArray createDebugMarkerArray() override;
@@ -112,6 +127,13 @@ public:
   }
 
 private:
+  //=== self-testing changes ===
+
+  friend class DetectionAreaTestable;
+  std::unique_ptr<DetectionAreaTestable> testable_;
+
+  //============================
+
   // Lane id
   int64_t lane_id_;
 
