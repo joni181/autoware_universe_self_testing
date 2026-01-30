@@ -18,7 +18,7 @@
 #include <utility>
 
 #include "scene.hpp"
-#include "i_detection_area_testable.hpp"
+#include "self_test/i_detection_area_testable.hpp"
 
 namespace autoware::behavior_velocity_planner
 {

@@ -32,7 +32,7 @@
 
 #include <lanelet2_core/LaneletMap.h>
 
-#include "i_detection_area_testable.hpp"
+#include "self_test/i_detection_area_testable.hpp"
 
 namespace autoware::behavior_velocity_planner
 {
