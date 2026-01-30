@@ -4,7 +4,7 @@
   <name>autoware_self_test_types</name>
   <version>0.0.0</version>
   <description>Common self-test type definitions (TestCase, TestResult, TestRun, ...).</description>
-  <maintainer email="jonathan@lipps.de">jonathan_lippss</maintainer>
+  <maintainer email="jonathan@lipps.de">Jonathan Lippss</maintainer>
   <license>Apache-2.0</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
