@@ -39,6 +39,7 @@
   <depend>visualization_msgs</depend>
   <depend>autoware_self_test_types</depend>
   <depend>autoware_self_test_infrastructure</depend>
+  <depend>std_srvs</depend>
 
   <test_depend>ament_cmake_ros</test_depend>
   <test_depend>ament_lint_auto</test_depend>

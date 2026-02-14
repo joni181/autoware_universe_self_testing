@@ -3,10 +3,15 @@ project(autoware_self_test_infrastructure)
 
 find_package(ament_cmake REQUIRED)
 find_package(autoware_self_test_types REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(std_srvs REQUIRED)
 
-# TODO(jlippss): add all *.cpp files
 add_library(${PROJECT_NAME} SHARED
   src/self_test_registry.cpp
+  src/test_run_pipeline/test_executor.cpp
+  src/test_run_pipeline/evaluator.cpp
+  src/test_run_pipeline/reporter.cpp
+  src/self_test_controller.cpp
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC
@@ -36,23 +41,22 @@ install(
 # Export for downstream packages
 ament_export_include_directories(include)
 ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
-ament_export_dependencies(autoware_self_test_types)
+ament_export_dependencies(autoware_self_test_types rclcpp std_srvs)
 
 if(BUILD_TESTING)
   find_package(ament_cmake_gtest REQUIRED)
 
-  # TODO(jlippss): add all test files
-  ament_add_gtest(test_self_test_registry
+  ament_add_gtest(test_${PROJECT_NAME}
     test/test_self_test_registry.cpp
+    test/test_test_executor.cpp
+    test/test_evaluator.cpp
+    test/test_reporter.cpp
+    test/test_self_test_controller.cpp
   )
 
-  target_link_libraries(test_self_test_registry
-    ${PROJECT_NAME}
-  )
+  target_link_libraries(test_${PROJECT_NAME} ${PROJECT_NAME})
 
-  ament_target_dependencies(test_self_test_registry
-    autoware_self_test_types
-  )
+  ament_target_dependencies(test_${PROJECT_NAME} autoware_self_test_types)
 endif()
 
 ament_package()

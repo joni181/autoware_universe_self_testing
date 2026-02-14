@@ -10,6 +10,8 @@
   <buildtool_depend>ament_cmake</buildtool_depend>
 
   <depend>autoware_self_test_types</depend>
+  <depend>rclcpp</depend>
+  <depend>std_srvs</depend>
 
   <test_depend>ament_cmake_gtest</test_depend>
 

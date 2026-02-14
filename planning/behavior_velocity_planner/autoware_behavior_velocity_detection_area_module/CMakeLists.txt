@@ -7,9 +7,17 @@ pluginlib_export_plugin_description_file(autoware_behavior_velocity_planner plug
 
 find_package(autoware_self_test_types REQUIRED)
 find_package(autoware_self_test_infrastructure REQUIRED)
+find_package(std_srvs REQUIRED)
 
 ament_auto_add_library(${PROJECT_NAME} SHARED
   DIRECTORY src
+)
+
+ament_target_dependencies(${PROJECT_NAME}
+  autoware_self_test_infrastructure
+  autoware_self_test_types
+  rclcpp
+  std_srvs
 )
 
 if(BUILD_TESTING)
