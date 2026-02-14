@@ -35,36 +35,34 @@ void TesterComponent::register_test_cases()
 {
     test_cases_.clear();
 
-    auto add = [this](types::TestResult (TesterComponent::*method)()) {
-        auto tc = std::make_shared<types::TestCase>();
-        test_cases_.push_back(tc);
+    auto add = [this](
+      const std::string & name,
+      types::TestResult (TesterComponent::*method)()) {
 
-        const std::size_t idx = test_cases_.size() - 1U;
+      auto tc = std::make_shared<types::TestCase>();
+      tc->name = name;
+      test_cases_.push_back(tc);
 
-        /*
-        Bind an invokable into the TestCase. We capture:
-        - mmethod: which TersterComponent::test_*
-        - idx: to retrieve the corresponding TestCase to link the result / get the timing
-        - this: to access member functions
-        */
-        tc->test_function = [this, method, idx]() -> types::TestResult {
-            // careful: this is only stable as long as test cases are not reordered/erased after registration
-            const auto & tc_ptr = test_cases_[idx];
+      const std::size_t idx = test_cases_.size() - 1U;
 
-            // measures execution time but keeps the actual test logic isolated in the test_* method
-            return run_timed(tc_ptr, [this, method]() {
-                return (this->*method)();
-            });
-        };
+      tc->test_function = [this, method, idx]() -> types::TestResult {
+        // careful: this is only stable as long as test cases are not reordered/erased after registration
+        const auto & tc_ptr = test_cases_[idx];
+
+        // measures execution time but keeps the actual test logic isolated in the test_* method
+        return run_timed(tc_ptr, [this, method]() {
+            return (this->*method)();
+        });
+      };
     };
 
-    add(&TesterComponent::test_no_detection_area);
-    add(&TesterComponent::test_activated_no_obstacles);
-    add(&TesterComponent::test_predicted_object);
-    add(&TesterComponent::test_predicted_object_class_disabled);
-    add(&TesterComponent::test_pointcloud_obstacle);
-    add(&TesterComponent::test_respect_stop_margin);
-    add(&TesterComponent::test_restart_prevention);
+    add("test_no_detection_area", &TesterComponent::test_no_detection_area);
+    add("test_activated_no_obstacles", &TesterComponent::test_activated_no_obstacles);
+    add("test_predicted_object", &TesterComponent::test_predicted_object);
+    add("test_predicted_object_class_disabled", &TesterComponent::test_predicted_object_class_disabled);
+    add("test_pointcloud_obstacle", &TesterComponent::test_pointcloud_obstacle);
+    add("test_respect_stop_margin", &TesterComponent::test_respect_stop_margin);
+    add("test_restart_prevention", &TesterComponent::test_restart_prevention);
 }
 
 // ----------
@@ -75,7 +73,6 @@ types::TestResult TesterComponent::test_no_detection_area()
 {
     types::TestResult r;
     r.passed = true;
-    r.coverage = 0.0;
     return r;
 }
 
@@ -83,7 +80,6 @@ types::TestResult TesterComponent::test_activated_no_obstacles()
 {
   types::TestResult r;
   r.passed = true;
-  r.coverage = 0.0;
   return r;
 }
 
@@ -91,7 +87,6 @@ types::TestResult TesterComponent::test_predicted_object()
 {
   types::TestResult r;
   r.passed = true;
-  r.coverage = 0.0;
   return r;
 }
 
@@ -99,7 +94,6 @@ types::TestResult TesterComponent::test_predicted_object_class_disabled()
 {
   types::TestResult r;
   r.passed = true;
-  r.coverage = 0.0;
   return r;
 }
 
@@ -107,7 +101,6 @@ types::TestResult TesterComponent::test_pointcloud_obstacle()
 {
   types::TestResult r;
   r.passed = true;
-  r.coverage = 0.0;
   return r;
 }
 
@@ -115,7 +108,6 @@ types::TestResult TesterComponent::test_respect_stop_margin()
 {
   types::TestResult r;
   r.passed = true;
-  r.coverage = 0.0;
   return r;
 }
 
@@ -123,7 +115,6 @@ types::TestResult TesterComponent::test_restart_prevention()
 {
   types::TestResult r;
   r.passed = true;
-  r.coverage = 0.0;
   return r;
 }
 
