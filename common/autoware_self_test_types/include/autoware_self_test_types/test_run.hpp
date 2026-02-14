@@ -26,12 +26,6 @@ struct TestCase;  // forward declaration to fix circular dependency
 
 struct TestRun
 {
-  // TODO(jlippss): do we really need this?
-  // std::string test_run_id{};
-
-  // time recorded when run is started
-  std::chrono::system_clock::time_point start_time{};
-
   // shared_ptr avoids copying and eeps ownership in the component registry
   std::vector<std::shared_ptr<const TestCase>> test_cases{};
 };

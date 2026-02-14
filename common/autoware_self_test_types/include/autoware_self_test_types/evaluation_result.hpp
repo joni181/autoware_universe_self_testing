@@ -22,15 +22,8 @@ namespace autoware_self_test_types
 struct EvaluationResult
 {
   bool validation_decision{false};
-
-  // TODO(jlippss): maybe change to another type? dict?
   std::string validation_reason{};
-
-  // [0.0, 1.0]
-  double adequacy{0.0};
-
-  // [0.0, 1.0]
-  double coverage{0.0};
+  std::size_t failed_test_count{0U};
 };
 }  // namespace autoware_self_test_types
 

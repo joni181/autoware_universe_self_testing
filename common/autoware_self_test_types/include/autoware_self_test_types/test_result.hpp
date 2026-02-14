@@ -15,7 +15,6 @@
 #ifndef AUTOWARE_SELF_TEST_TYPES__TEST_RESULT_HPP_
 #define AUTOWARE_SELF_TEST_TYPES__TEST_RESULT_HPP_
 
-#include <chrono>
 #include <memory>
 #include <optional>
 #include <string>
@@ -38,8 +37,6 @@ struct TestResult
 
   // optional: only if !passed
   std::optional<error_map_t> error{};
-
-  double coverage{0.0};
 };
 }  // namespace autoware_self_test_types
 

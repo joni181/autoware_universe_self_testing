@@ -29,8 +29,6 @@ struct TestRunResult
 
   // seconds for the whole run (all test cases)
   double elapsed_time_sec{0.0};
-
-  // TODO(jlippss): extend later: e.g., aggregated pass/fail, evaluation summary, timestamps, ...
 };
 }  // namespace autoware_self_test_types
 

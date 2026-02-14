@@ -18,19 +18,14 @@
 #include <functional>
 #include <string>
 
-#include "autoware_self_test_types/test_result.hpp"
-
 namespace autoware_self_test_types
 {
+struct TestResult;  // forward declaration
+
 struct TestCase
 {
-  // not implemented here because it is an optional feature
-  // std::string bundle{};
-
   std::function<TestResult()> test_function{};
-
-  // TODO(jlippss): may be needed later
-  // std::string name{};
+  std::string name{};
 };
 }  // namespace autoware_self_test_types
 
