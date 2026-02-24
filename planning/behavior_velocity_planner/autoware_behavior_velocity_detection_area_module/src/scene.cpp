@@ -27,6 +27,9 @@
 
 #include <lanelet2_core/geometry/Polygon.h>
 
+#include <autoware_self_test_infrastructure/self_test_registry.hpp>
+#include "self_test/tester_component.hpp"
+
 #include <cstring>
 #include <iomanip>
 #include <memory>
@@ -127,7 +130,13 @@ DetectionAreaModule::DetectionAreaModule(
   planner_param_(planner_param),
   debug_data_()
 {
-  testable_ = std::make_unique<DetectionAreaTestable>(*this); //"adapter" instance
+  testable_ = std::make_unique<DetectionAreaTestable>(*this);  // "adapter" instance
+
+  self_test_component_id_ = "detection_area_" + std::to_string(module_id);
+  tester_component_ = std::make_shared<TesterComponent>(*testable_);
+
+  autoware_self_test_infrastructure::SelfTestRegistry::instance().register_tester(
+    self_test_component_id_, tester_component_);
 }
 
 void DetectionAreaModule::print_detected_obstacle(
@@ -424,7 +433,12 @@ bool DetectionAreaModule::modifyPathVelocity(PathWithLaneId * path)
 
 // Required when DetectionAreaModule owns `std::unique_ptr<DetectionAreaTestable>` declared using only a
 // forward declaration in the header: define destructor where DetectionAreaTestable is complete.
-DetectionAreaModule::~DetectionAreaModule() = default;
+DetectionAreaModule::~DetectionAreaModule()
+{
+  if (!self_test_component_id_.empty()) {
+    autoware_self_test_infrastructure::SelfTestRegistry::instance().unregister_tester(self_test_component_id_);
+  }
+}
 
 // Accessors for the testable interface
 IDetectionAreaTestable & DetectionAreaModule::testable()

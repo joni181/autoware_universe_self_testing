@@ -41,7 +41,9 @@ using PathIndexWithPoint2d = std::pair<size_t, Point2d>;                // front
 using PathIndexWithOffset = std::pair<size_t, double>;                  // front index, offset
 using autoware_internal_planning_msgs::msg::PathWithLaneId;
 
+// forward declarations
 class DetectionAreaTestable;
+class TesterComponent;
 
 class DetectionAreaModule : public SceneModuleInterfaceWithRTC
 {
@@ -131,6 +133,9 @@ private:
 
   friend class DetectionAreaTestable;
   std::unique_ptr<DetectionAreaTestable> testable_;
+
+  std::shared_ptr<TesterComponent> tester_component_;
+  std::string self_test_component_id_;
 
   //============================
 

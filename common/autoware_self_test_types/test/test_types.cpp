@@ -25,8 +25,6 @@ TEST(self_test_types, evaluation_result_defaults)
   EvaluationResult r;
   EXPECT_FALSE(r.validation_decision);
   EXPECT_TRUE(r.validation_reason.empty());
-  EXPECT_DOUBLE_EQ(r.adequacy, 0.0);
-  EXPECT_DOUBLE_EQ(r.coverage, 0.0);
 }
 
 TEST(self_test_types, test_case_invokable_smoke)

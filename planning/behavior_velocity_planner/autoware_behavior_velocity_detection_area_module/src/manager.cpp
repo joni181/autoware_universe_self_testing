@@ -19,6 +19,8 @@
 #include <autoware_utils/ros/parameter.hpp>
 #include <tf2/utils.hpp>
 
+#include <autoware_self_test_infrastructure/self_test_service.hpp>
+
 #include <limits>
 #include <memory>
 #include <set>
@@ -37,6 +39,13 @@ DetectionAreaModuleManager::DetectionAreaModuleManager(rclcpp::Node & node)
     node, getModuleName(), getEnableRTC(node, std::string(getModuleName()) + ".enable_rtc"))
 {
   const std::string ns(DetectionAreaModuleManager::getModuleName());
+
+  // Create the self-test ROS service in this process.
+  static std::unique_ptr<autoware_self_test_infrastructure::SelfTestService> self_test_service;
+  if (!self_test_service) {
+    self_test_service = std::make_unique<autoware_self_test_infrastructure::SelfTestService>(node);
+  }
+
   planner_param_.stop_margin = get_or_declare_parameter<double>(node, ns + ".stop_margin");
   planner_param_.use_dead_line = get_or_declare_parameter<bool>(node, ns + ".use_dead_line");
   planner_param_.dead_line_margin =
