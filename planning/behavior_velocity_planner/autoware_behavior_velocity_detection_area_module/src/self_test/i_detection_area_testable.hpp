@@ -15,6 +15,8 @@
 #ifndef I_DETECTION_AREA_TESTABLE_HPP_
 #define I_DETECTION_AREA_TESTABLE_HPP_
 
+#include "detection_area_snapshot.hpp"
+
 #include <autoware_internal_planning_msgs/msg/path_with_lane_id.hpp>
 #include <geometry_msgs/msg/point.hpp>
 #include <geometry_msgs/msg/pose.hpp>

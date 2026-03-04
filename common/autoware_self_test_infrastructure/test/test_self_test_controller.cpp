@@ -43,7 +43,7 @@ std::shared_ptr<types::TestCase> make_case(const std::string & name, bool pass)
   tc->name = name;
   tc->test_function = [pass, tc]() {
     types::TestResult tr;
-    tr.passed = pass;
+    tr.result = pass ? types::TestResultStatus::PASS : types::TestResultStatus::FAIL;
     tr.elapsed_time_sec = 0.001;
 
     // optional: attach here; controller pipeline should work either way

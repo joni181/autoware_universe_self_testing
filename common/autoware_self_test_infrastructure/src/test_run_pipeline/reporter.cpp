@@ -82,6 +82,21 @@ std::string iso8601_utc(std::chrono::system_clock::time_point tp)
 
 std::string bool_json(bool v) { return v ? "true" : "false"; }
 
+std::string status_to_string(types::TestResultStatus status)
+{
+  switch (status) {
+    case types::TestResultStatus::PASS:
+      return "PASS";
+    case types::TestResultStatus::SKIP:
+      return "SKIP";
+    case types::TestResultStatus::FAIL:
+    default:
+      return "FAIL";
+  }
+}
+
+bool is_pass(const types::TestResult & tr) { return tr.result == types::TestResultStatus::PASS; }
+
 std::string get_test_case_name(const std::shared_ptr<const types::TestCase> & tc, std::size_t idx)
 {
   if (!tc) {
@@ -99,7 +114,7 @@ std::size_t count_failed(const std::vector<types::TestResult> & results)
 {
   std::size_t failed = 0;
   for (const auto & tr : results) {
-    if (!tr.passed) {
+    if (tr.result == types::TestResultStatus::FAIL) {
       ++failed;
     }
   }
@@ -110,11 +125,22 @@ std::size_t count_passed(const std::vector<types::TestResult> & results)
 {
   std::size_t passed = 0;
   for (const auto & tr : results) {
-    if (tr.passed) {
+    if (tr.result == types::TestResultStatus::PASS) {
       ++passed;
     }
   }
   return passed;
+}
+
+std::size_t count_skipped(const std::vector<types::TestResult> & results)
+{
+  std::size_t skipped = 0;
+  for (const auto & tr : results) {
+    if (tr.result == types::TestResultStatus::SKIP) {
+      ++skipped;
+    }
+  }
+  return skipped;
 }
 
 }  // namespace
@@ -130,6 +156,7 @@ std::string Reporter::build(
   const std::size_t total = test_run_result.test_results.size();
   const std::size_t failed = count_failed(test_run_result.test_results);
   const std::size_t passed = count_passed(test_run_result.test_results);
+  const std::size_t skipped = count_skipped(test_run_result.test_results);
 
   // Report id uses a timestamp to avoid collisions and to be human-friendly.
   const std::string report_id = std::string("self_test_report_") + iso8601_utc(system_clock::now());
@@ -145,6 +172,7 @@ std::string Reporter::build(
 
   out << "\"total_count\":" << total << ",";
   out << "\"passed_count\":" << passed << ",";
+  out << "\"skipped_count\":" << skipped << ",";
   out << "\"failed_count\":" << failed << ",";
 
   out << "\"validation_decision\":" << bool_json(evaluation_result.validation_decision) << ",";
@@ -163,7 +191,8 @@ std::string Reporter::build(
     out << "{";
     out << "\"index\":" << i << ",";
     out << "\"name\":\"" << json_escape(get_test_case_name(tr.test_case, i)) << "\",";
-    out << "\"passed\":" << bool_json(tr.passed) << ",";
+    out << "\"status\":\"" << status_to_string(tr.result) << "\",";
+    out << "\"passed\":" << bool_json(is_pass(tr)) << ",";
     out << "\"elapsed_time_sec\":" << test_elapsed;
 
     // Optional error map if present

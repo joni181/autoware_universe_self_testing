@@ -36,14 +36,14 @@ TEST(reporter, builds_json_with_expected_fields)
   {
     types::TestResult tr;
     tr.test_case = make_case("case_one");
-    tr.passed = true;
+    tr.result = types::TestResultStatus::PASS;
     tr.elapsed_time_sec = 0.01;
     run.test_results.push_back(tr);
   }
   {
     types::TestResult tr;
     tr.test_case = make_case("case_two");
-    tr.passed = true;
+    tr.result = types::TestResultStatus::PASS;
     tr.elapsed_time_sec = 0.02;
     run.test_results.push_back(tr);
   }
@@ -57,6 +57,7 @@ TEST(reporter, builds_json_with_expected_fields)
 
   EXPECT_NE(json.find("\"total_count\":2"), std::string::npos);
   EXPECT_NE(json.find("\"passed_count\":2"), std::string::npos);
+  EXPECT_NE(json.find("\"skipped_count\":0"), std::string::npos);
   EXPECT_NE(json.find("\"failed_count\":0"), std::string::npos);
 
   EXPECT_NE(json.find("\"validation_decision\":true"), std::string::npos);
@@ -64,4 +65,5 @@ TEST(reporter, builds_json_with_expected_fields)
 
   EXPECT_NE(json.find("\"name\":\"case_one\""), std::string::npos);
   EXPECT_NE(json.find("\"name\":\"case_two\""), std::string::npos);
+  EXPECT_NE(json.find("\"status\":\"PASS\""), std::string::npos);
 }

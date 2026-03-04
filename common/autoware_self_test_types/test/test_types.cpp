@@ -19,6 +19,7 @@
 using autoware_self_test_types::EvaluationResult;
 using autoware_self_test_types::TestCase;
 using autoware_self_test_types::TestResult;
+using autoware_self_test_types::TestResultStatus;
 
 TEST(self_test_types, evaluation_result_defaults)
 {
@@ -32,12 +33,12 @@ TEST(self_test_types, test_case_invokable_smoke)
   auto tc = std::make_shared<TestCase>();
   tc->test_function = []() {
       TestResult tr;
-      tr.passed = true;
+      tr.result = TestResultStatus::PASS;
       return tr;
     };
 
   auto tr = tc->test_function();
-  EXPECT_TRUE(tr.passed);
+  EXPECT_EQ(tr.result, TestResultStatus::PASS);
 }
 
 TEST(self_test_types, test_result_can_reference_test_case)

@@ -33,6 +33,7 @@
 #include <cstring>
 #include <iomanip>
 #include <memory>
+#include <mutex>
 #include <optional>
 #include <sstream>
 #include <string>
@@ -54,14 +55,45 @@ public:
   self_test::DetectionAreaSnapshot capture_snapshot(const PathWithLaneId & current_path) const override
   {
     self_test::DetectionAreaSnapshot s;
+    s.capture_time = module_.clock_->now();
     s.path = current_path;
-    s.self_pose = module_.planner_data_->current_odometry->pose;
-    s.current_velocity_mps = module_.planner_data_->current_velocity->twist.linear.x;
+    s.pointcloud_detection_enabled = module_.planner_param_.target_filtering.pointcloud;
+
+    if (module_.planner_data_->current_odometry) {
+      s.self_pose = module_.planner_data_->current_odometry->pose;
+    }
+    if (module_.planner_data_->current_velocity) {
+      s.current_velocity_mps = module_.planner_data_->current_velocity->twist.linear.x;
+    }
 
     s.no_ground_pointcloud = module_.planner_data_->no_ground_pointcloud;
     s.predicted_objects = module_.planner_data_->predicted_objects;
+    observe_dynamic_objects(s.predicted_objects, s.capture_time);
+
+    std::lock_guard<std::mutex> lock(dynamic_objects_mutex_);
+    s.dynamic_objects.has_msg = static_cast<bool>(s.predicted_objects);
+    s.dynamic_objects.last_receive_time = dynamic_objects_last_receive_time_;
+    s.dynamic_objects.received_count = dynamic_objects_received_count_;
 
     return s;
+  }
+
+  void observe_dynamic_objects(
+    const autoware_perception_msgs::msg::PredictedObjects::ConstSharedPtr & predicted_objects,
+    const rclcpp::Time & observed_time) const
+  {
+    std::lock_guard<std::mutex> lock(dynamic_objects_mutex_);
+
+    if (!predicted_objects) {
+      last_observed_predicted_objects_.reset();
+      return;
+    }
+
+    if (predicted_objects.get() != last_observed_predicted_objects_.get()) {
+      last_observed_predicted_objects_ = predicted_objects;
+      dynamic_objects_last_receive_time_ = observed_time;
+      ++dynamic_objects_received_count_;
+    }
   }
 
   //pass the function calls to the module under test (DetectionAreaModule)
@@ -110,7 +142,7 @@ public:
       path, original_path, stop_pose, modified_stop_pose, modified_stop_line_seg_idx, self_pose,
       current_velocity, stop_dist, detection_source);
   }
-  private:
+private:
   static DetectionAreaModule::State toModuleState(const IDetectionAreaTestable::State s)
   {
     switch (s) {
@@ -122,6 +154,12 @@ public:
     // Defensive fallback (should be unreachable).
     return DetectionAreaModule::State::GO;
   }
+
+  mutable std::mutex dynamic_objects_mutex_;
+  mutable autoware_perception_msgs::msg::PredictedObjects::ConstSharedPtr
+    last_observed_predicted_objects_;
+  mutable std::optional<rclcpp::Time> dynamic_objects_last_receive_time_;
+  mutable std::size_t dynamic_objects_received_count_{0U};
 
   DetectionAreaModule & module_;
 };
@@ -262,6 +300,10 @@ bool DetectionAreaModule::handleUnstoppableStopAfterLinePolicy(
 
 bool DetectionAreaModule::modifyPathVelocity(PathWithLaneId * path)
 {
+  if (testable_) {
+    testable_->observe_dynamic_objects(planner_data_->predicted_objects, clock_->now());
+  }
+
   // Store original path
   const auto original_path = *path;
 

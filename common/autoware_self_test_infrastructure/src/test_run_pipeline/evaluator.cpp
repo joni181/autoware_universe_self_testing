@@ -42,6 +42,10 @@ types::EvaluationResult Evaluator::evaluate(const types::TestRunResult & test_ru
 {
   types::EvaluationResult out{};
 
+  out.failed_test_count = std::count_if(
+    test_run_result.test_results.begin(), test_run_result.test_results.end(),
+    [](const auto & tr) { return tr.result == types::TestResultStatus::FAIL; });
+
   const auto [decision, reason] = validate_(test_run_result);
 
   out.validation_decision = decision;
@@ -56,17 +60,34 @@ std::pair<bool, std::string> Evaluator::validate_(const types::TestRunResult & t
     return {false, "No tests have been executed."};
   }
 
+  std::size_t pass_count = 0;
+  std::size_t skip_count = 0;
   std::size_t failed_count = 0;
   for (const auto & tr : test_run_result.test_results) {
-  if (!tr.passed) {
-    ++failed_count;
-  }
+    switch (tr.result) {
+      case types::TestResultStatus::PASS:
+        ++pass_count;
+        break;
+      case types::TestResultStatus::SKIP:
+        ++skip_count;
+        break;
+      case types::TestResultStatus::FAIL:
+      default:
+        ++failed_count;
+        break;
+    }
   }
 
   if (failed_count > 0U) {
     std::ostringstream oss;
     oss << failed_count << " tests failed.";
     return {false, oss.str()};
+  }
+
+  if (skip_count > 0U) {
+    std::ostringstream oss;
+    oss << pass_count << " tests passed, " << skip_count << " tests skipped.";
+    return {true, oss.str()};
   }
 
   return {true, "All tests passed."};

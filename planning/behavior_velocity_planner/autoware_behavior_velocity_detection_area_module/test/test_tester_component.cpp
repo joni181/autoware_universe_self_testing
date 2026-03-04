@@ -13,18 +13,37 @@
 // limitations under the License.
 
 #include <gtest/gtest.h>
+#include <rclcpp/duration.hpp>
 
 #include "self_test/i_detection_area_testable.hpp"
 #include "self_test/tester_component.hpp"
 
 namespace bvp = autoware::behavior_velocity_planner;
 namespace msgs = autoware_internal_planning_msgs::msg;
+namespace types = autoware_self_test_types;
 
-// Minimal stub: the current dummy test_* methods in TesterComponent should not call into the
-// module adapter yet. If any of these get called unexpectedly, fail hard.
 class DummyDetectionAreaTestable final : public bvp::IDetectionAreaTestable
 {
 public:
+  bvp::self_test::DetectionAreaSnapshot capture_snapshot(
+    const msgs::PathWithLaneId & current_path) const override
+  {
+    bvp::self_test::DetectionAreaSnapshot snapshot;
+    snapshot.capture_time = rclcpp::Time{10, 0, RCL_ROS_TIME};
+    snapshot.path = current_path;
+    snapshot.pointcloud_detection_enabled = false;
+    snapshot.dynamic_objects.has_msg = true;
+    snapshot.dynamic_objects.received_count = 2;
+    snapshot.dynamic_objects.last_receive_time =
+      snapshot.capture_time - rclcpp::Duration::from_seconds(0.1);
+
+    auto predicted_objects = std::make_shared<autoware_perception_msgs::msg::PredictedObjects>();
+    predicted_objects->header.frame_id = "map";
+    snapshot.predicted_objects = predicted_objects;
+
+    return snapshot;
+  }
+
   void print_detected_obstacle(
     const std::vector<geometry_msgs::msg::Point> & /*obstacle_points*/,
     const geometry_msgs::msg::Pose & /*self_pose*/) const override
@@ -100,7 +119,6 @@ TEST(detection_area_tester_component, registers_cases_and_invokes)
     // elapsed time should be set (>= 0)
     EXPECT_GE(result.elapsed_time_sec, 0.0);
 
-    // current dummy tests return "passed"; keep this as a sanity check
-    EXPECT_TRUE(result.passed);
+    EXPECT_NE(result.result, types::TestResultStatus::FAIL);
   }
 }

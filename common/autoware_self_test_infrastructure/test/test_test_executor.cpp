@@ -45,7 +45,7 @@ std::shared_ptr<types::TestCase> make_case(const std::string & name, bool pass, 
   // Deliberately do NOT set TestResult.test_case here (executor has a defensive attach).
   tc->test_function = [pass, elapsed]() {
     types::TestResult tr;
-    tr.passed = pass;
+    tr.result = pass ? types::TestResultStatus::PASS : types::TestResultStatus::FAIL;
     tr.elapsed_time_sec = elapsed;
     return tr;
   };

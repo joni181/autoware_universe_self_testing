@@ -18,6 +18,7 @@
 #include <memory>
 #include <optional>
 #include <string>
+#include <cstdint>
 #include <unordered_map>
 
 namespace autoware_self_test_types
@@ -26,16 +27,23 @@ struct TestCase;  // forward declaration to fix circular dependency
 
 using error_map_t = std::unordered_map<std::string, std::string>;
 
+enum class TestResultStatus : std::uint8_t
+{
+  PASS = 0,
+  FAIL = 1,
+  SKIP = 2
+};
+
 struct TestResult
 {
   // using shared_ptr avoids copying TestCase (and keeps "ownership" in the component registry)
   std::shared_ptr<const TestCase> test_case{};
 
-  bool passed{false};
+  TestResultStatus result{TestResultStatus::FAIL};
 
   double elapsed_time_sec{0.0};
 
-  // optional: only if !passed
+  // optional details for FAIL/SKIP, may also be set for PASS if useful
   std::optional<error_map_t> error{};
 };
 }  // namespace autoware_self_test_types

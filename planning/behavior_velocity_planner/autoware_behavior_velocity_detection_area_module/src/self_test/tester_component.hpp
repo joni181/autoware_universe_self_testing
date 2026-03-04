@@ -39,6 +39,7 @@ public:
     // Concrete test case operations
     types::TestResult test_no_detection_area();
     types::TestResult test_activated_no_obstacles();
+    types::TestResult test_predicted_objects_provider_available();
     types::TestResult test_predicted_object();
     types::TestResult test_predicted_object_class_disabled();
     types::TestResult test_pointcloud_obstacle();
