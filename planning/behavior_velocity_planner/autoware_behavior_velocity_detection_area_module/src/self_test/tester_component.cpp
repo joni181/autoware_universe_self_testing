@@ -71,9 +71,11 @@ void TesterComponent::register_test_cases()
 
 types::TestResult TesterComponent::test_no_detection_area()
 {
-    types::TestResult r;
-    r.passed = true;
-    return r;
+  auto snap = detection_area_testable_.capture_snapshot(path_from_runtime_or_mock);  // TODO(jlippss) fill right path
+
+  types::TestResult r;
+  r.passed = true;
+  return r;
 }
 
 types::TestResult TesterComponent::test_activated_no_obstacles()

@@ -33,6 +33,10 @@ public:
 
   virtual ~IDetectionAreaTestable() = default;
 
+  // snapshot for isolation
+  virtual self_test::DetectionAreaSnapshot capture_snapshot(
+    const autoware_internal_planning_msgs::msg::PathWithLaneId & current_path) const = 0;
+
   virtual void print_detected_obstacle(
     const std::vector<geometry_msgs::msg::Point> & obstacle_points,
     const geometry_msgs::msg::Pose & self_pose) const = 0;

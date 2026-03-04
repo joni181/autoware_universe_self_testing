@@ -51,6 +51,19 @@ class DetectionAreaTestable final : public IDetectionAreaTestable
 public:
   explicit DetectionAreaTestable(DetectionAreaModule & module) : module_(module) {}
 
+  self_test::DetectionAreaSnapshot capture_snapshot(const PathWithLaneId & current_path) const override
+  {
+    self_test::DetectionAreaSnapshot s;
+    s.path = current_path;
+    s.self_pose = module_.planner_data_->current_odometry->pose;
+    s.current_velocity_mps = module_.planner_data_->current_velocity->twist.linear.x;
+
+    s.no_ground_pointcloud = module_.planner_data_->no_ground_pointcloud;
+    s.predicted_objects = module_.planner_data_->predicted_objects;
+
+    return s;
+  }
+
   //pass the function calls to the module under test (DetectionAreaModule)
   void print_detected_obstacle(
     const std::vector<geometry_msgs::msg::Point> & obstacle_points,
