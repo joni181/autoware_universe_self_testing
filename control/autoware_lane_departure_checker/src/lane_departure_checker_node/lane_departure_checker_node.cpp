@@ -70,6 +70,10 @@ std::map<lanelet::Id, lanelet::ConstLanelet> getRouteLanelets(
   {
     const auto extension_length = 2 * vehicle_length;
 
+    #if defined(__GNUC__) || defined(__clang__)
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+    #endif
     for (const auto & primitive : route_ptr->segments.front().primitives) {
       const auto lane_id = primitive.id;
       for (const auto & lanelet_sequence : lanelet::utils::query::getPrecedingLaneletSequences(
@@ -79,6 +83,9 @@ std::map<lanelet::Id, lanelet::ConstLanelet> getRouteLanelets(
         }
       }
     }
+    #if defined(__GNUC__) || defined(__clang__)
+    #pragma GCC diagnostic pop
+    #endif
   }
 
   for (const auto & route_section : route_ptr->segments) {
@@ -91,7 +98,10 @@ std::map<lanelet::Id, lanelet::ConstLanelet> getRouteLanelets(
   // Add succeeding lanes of last route_section to prevent detection errors
   {
     const auto extension_length = 2 * vehicle_length;
-
+    #if defined(__GNUC__) || defined(__clang__)
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+    #endif
     for (const auto & primitive : route_ptr->segments.back().primitives) {
       const auto lane_id = primitive.id;
       for (const auto & lanelet_sequence : lanelet::utils::query::getSucceedingLaneletSequences(
@@ -101,6 +111,9 @@ std::map<lanelet::Id, lanelet::ConstLanelet> getRouteLanelets(
         }
       }
     }
+    #if defined(__GNUC__) || defined(__clang__)
+    #pragma GCC diagnostic pop
+    #endif
   }
 
   return route_lanelets;
