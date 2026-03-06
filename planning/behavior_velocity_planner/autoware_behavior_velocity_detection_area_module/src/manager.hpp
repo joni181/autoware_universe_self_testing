@@ -27,12 +27,20 @@
 #include <functional>
 #include <memory>
 
+namespace autoware_self_test_infrastructure
+{
+class ISelfTestRegistry;
+}  // namespace autoware_self_test_infrastructure
+
 namespace autoware::behavior_velocity_planner
 {
 class DetectionAreaModuleManager : public SceneModuleManagerInterfaceWithRTC
 {
 public:
-  explicit DetectionAreaModuleManager(rclcpp::Node & node);
+  explicit DetectionAreaModuleManager(
+    rclcpp::Node & node,
+    const std::shared_ptr<autoware_self_test_infrastructure::ISelfTestRegistry> &
+      self_test_registry = nullptr);
 
   const char * getModuleName() override { return "detection_area"; }
 
@@ -46,6 +54,7 @@ public:
 
 private:
   DetectionAreaModule::PlannerParam planner_param_;
+  std::shared_ptr<autoware_self_test_infrastructure::ISelfTestRegistry> self_test_registry_;
 
   void launchNewModules(const autoware_internal_planning_msgs::msg::PathWithLaneId & path) override;
 

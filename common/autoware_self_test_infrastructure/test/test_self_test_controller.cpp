@@ -72,7 +72,7 @@ private:
 
 TEST(self_test_controller, runs_pipeline_end_to_end_and_returns_report_json)
 {
-  auto & registry = infra::SelfTestRegistry::instance();
+  infra::SelfTestRegistry registry;
   RegistryCleanup cleanup(registry);
 
   const auto id = unique_id("controller_component");

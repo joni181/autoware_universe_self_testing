@@ -172,9 +172,10 @@ DetectionAreaModule::DetectionAreaModule(
   const PlannerParam & planner_param, const rclcpp::Logger & logger,
   const rclcpp::Clock::SharedPtr clock,
   const std::shared_ptr<autoware_utils::TimeKeeper> time_keeper,
-  const std::shared_ptr<planning_factor_interface::PlanningFactorInterface>
-    planning_factor_interface)
+  const std::shared_ptr<planning_factor_interface::PlanningFactorInterface> planning_factor_interface,
+  const std::shared_ptr<autoware_self_test_infrastructure::ISelfTestRegistry> & self_test_registry)
 : SceneModuleInterfaceWithRTC(module_id, logger, clock, time_keeper, planning_factor_interface),
+  self_test_registry_(self_test_registry),
   lane_id_(lane_id),
   detection_area_reg_elem_(detection_area_reg_elem),
   state_(State::GO),
@@ -186,8 +187,9 @@ DetectionAreaModule::DetectionAreaModule(
   self_test_component_id_ = "detection_area_" + std::to_string(module_id);
   tester_component_ = std::make_shared<TesterComponent>(*testable_);
 
-  autoware_self_test_infrastructure::SelfTestRegistry::instance().register_tester(
-    self_test_component_id_, tester_component_);
+  if (self_test_registry_) {
+    self_test_registry_->register_tester(self_test_component_id_, tester_component_);
+  }
 }
 
 void DetectionAreaModule::print_detected_obstacle(
@@ -490,8 +492,8 @@ bool DetectionAreaModule::modifyPathVelocity(PathWithLaneId * path)
 // forward declaration in the header: define destructor where DetectionAreaTestable is complete.
 DetectionAreaModule::~DetectionAreaModule()
 {
-  if (!self_test_component_id_.empty()) {
-    autoware_self_test_infrastructure::SelfTestRegistry::instance().unregister_tester(self_test_component_id_);
+  if (self_test_registry_ && !self_test_component_id_.empty()) {
+    self_test_registry_->unregister_tester(self_test_component_id_);
   }
 }
 

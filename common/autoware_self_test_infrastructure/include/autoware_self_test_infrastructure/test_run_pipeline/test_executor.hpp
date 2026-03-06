@@ -36,11 +36,11 @@ public:
 class TestExecutor final : public ITestExecution
 {
 public:
-  explicit TestExecutor(SelfTestRegistry & registry);
+  explicit TestExecutor(ISelfTestRegistry & registry);
   types::TestRunResult execute() override;
 
 private:
-  SelfTestRegistry & registry_;
+  ISelfTestRegistry & registry_;
 };
 
 }  // namespace autoware_self_test_infrastructure

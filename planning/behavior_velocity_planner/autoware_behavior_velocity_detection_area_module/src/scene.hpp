@@ -34,6 +34,11 @@
 
 #include "self_test/i_detection_area_testable.hpp"
 
+namespace autoware_self_test_infrastructure
+{
+class ISelfTestRegistry;
+}  // namespace autoware_self_test_infrastructure
+
 namespace autoware::behavior_velocity_planner
 {
 using PathIndexWithPose = std::pair<size_t, geometry_msgs::msg::Pose>;  // front index, pose
@@ -99,8 +104,9 @@ public:
     const PlannerParam & planner_param, const rclcpp::Logger & logger,
     const rclcpp::Clock::SharedPtr clock,
     const std::shared_ptr<autoware_utils::TimeKeeper> time_keeper,
-    const std::shared_ptr<planning_factor_interface::PlanningFactorInterface>
-      planning_factor_interface);
+    const std::shared_ptr<planning_factor_interface::PlanningFactorInterface> planning_factor_interface,
+    const std::shared_ptr<autoware_self_test_infrastructure::ISelfTestRegistry> &
+      self_test_registry);
 
   //=== self-testing changes ===
 
@@ -136,6 +142,7 @@ private:
 
   std::shared_ptr<TesterComponent> tester_component_;
   std::string self_test_component_id_;
+  std::shared_ptr<autoware_self_test_infrastructure::ISelfTestRegistry> self_test_registry_;
 
   //============================
 

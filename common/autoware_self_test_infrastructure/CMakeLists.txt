@@ -7,7 +7,9 @@ find_package(rclcpp REQUIRED)
 find_package(std_srvs REQUIRED)
 
 add_library(${PROJECT_NAME} SHARED
+  src/self_test_infrastructure.cpp
   src/self_test_registry.cpp
+  src/self_test_service.cpp
   src/test_run_pipeline/test_executor.cpp
   src/test_run_pipeline/evaluator.cpp
   src/test_run_pipeline/reporter.cpp
@@ -21,6 +23,8 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 
 ament_target_dependencies(${PROJECT_NAME}
   autoware_self_test_types
+  rclcpp
+  std_srvs
 )
 
 # Install headers

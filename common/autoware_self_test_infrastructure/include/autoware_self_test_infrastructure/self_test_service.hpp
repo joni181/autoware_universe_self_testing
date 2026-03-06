@@ -16,18 +16,9 @@ namespace autoware_self_test_infrastructure
 class SelfTestService final
 {
 public:
-  explicit SelfTestService(rclcpp::Node & node)
-  : controller_(SelfTestRegistry::instance())
-  {
-    using std::placeholders::_1;
-    using std::placeholders::_2;
-
-    srv_ = node.create_service<std_srvs::srv::Trigger>(
-      "/self_test/run",
-      std::bind(&SelfTestService::on_trigger, this, _1, _2));
-
-    RCLCPP_INFO(node.get_logger(), "Self-test service ready: /self_test/run");
-  }
+  explicit SelfTestService(
+    rclcpp::Node & node, const std::shared_ptr<ISelfTestRegistry> & registry,
+    const std::string & service_name = "/self_test/run");
 
 private:
   void on_trigger(
@@ -39,6 +30,7 @@ private:
     resp->message = report_json;
   }
 
+  std::shared_ptr<ISelfTestRegistry> registry_;
   SelfTestController controller_;
   rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr srv_;
 };

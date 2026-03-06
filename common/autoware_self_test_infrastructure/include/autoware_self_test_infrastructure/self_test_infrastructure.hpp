@@ -14,33 +14,32 @@
 
 #pragma once
 
-#include <autoware_self_test_types/types.hpp>
-
-#include <optional>
-#include <string>
-#include <unordered_map>
-#include <utility>
-
-#include "autoware_self_test_infrastructure/test_run_pipeline/evaluator.hpp"
-#include "autoware_self_test_infrastructure/test_run_pipeline/reporter.hpp"
-#include "autoware_self_test_infrastructure/test_run_pipeline/test_executor.hpp"
 #include "autoware_self_test_infrastructure/self_test_registry.hpp"
+#include "autoware_self_test_infrastructure/self_test_service.hpp"
+
+#include <rclcpp/rclcpp.hpp>
+
+#include <memory>
+#include <string>
 
 namespace autoware_self_test_infrastructure
 {
 
-class SelfTestController
+class SelfTestInfrastructure final
 {
 public:
-  explicit SelfTestController(ISelfTestRegistry & registry);
+  SelfTestInfrastructure();
+  explicit SelfTestInfrastructure(const std::shared_ptr<ISelfTestRegistry> & registry);
 
-  // runs all test cases and returns the final JSON report.
-  std::string run();
+  std::shared_ptr<ISelfTestRegistry> get_registry() const;
+
+  void initialize_test_api(
+    rclcpp::Node & node, const std::string & service_name = "/self_test/run");
 
 private:
-  TestExecutor executor_;
-  Evaluator evaluator_;
-  Reporter reporter_;
+  std::shared_ptr<ISelfTestRegistry> registry_;
+  std::unique_ptr<SelfTestService> service_;
 };
 
 }  // namespace autoware_self_test_infrastructure
+

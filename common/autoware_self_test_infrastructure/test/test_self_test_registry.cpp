@@ -34,7 +34,7 @@ std::string unique_id(const std::string & prefix)
 
 TEST(self_test_registry, register_list_get_tester_unregister)
 {
-  auto & reg = infra::SelfTestRegistry::instance();
+  infra::SelfTestRegistry reg;
 
   const std::string component_id = unique_id("detection_area_registry_test");
   auto tester = std::make_shared<DummyTester>();

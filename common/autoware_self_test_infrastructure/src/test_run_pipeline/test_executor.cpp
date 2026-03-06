@@ -24,7 +24,7 @@ namespace autoware_self_test_infrastructure
 {
 namespace types = autoware_self_test_types;
 
-TestExecutor::TestExecutor(SelfTestRegistry & registry) : registry_(registry)
+TestExecutor::TestExecutor(ISelfTestRegistry & registry) : registry_(registry)
 {
 }
 

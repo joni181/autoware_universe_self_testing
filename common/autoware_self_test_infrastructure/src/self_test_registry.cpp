@@ -5,13 +5,6 @@
 namespace autoware_self_test_infrastructure
 {
 
-// singleton
-SelfTestRegistry & SelfTestRegistry::instance()
-{
-  static SelfTestRegistry inst;
-  return inst;
-}
-
 void SelfTestRegistry::register_tester(
   const std::string & component_id,
   const std::shared_ptr<ITesterComponent> & tester)

@@ -20,22 +20,36 @@ struct TesterHandle
   // TODO optional: tags, estimated_cost_ms, requires_exclusive_access, ... ?
 };
 
-class SelfTestRegistry
+class ISelfTestRegistry
 {
 public:
-  static SelfTestRegistry & instance();
+  virtual ~ISelfTestRegistry() = default;
 
+  virtual void register_tester(
+    const std::string & component_id,
+    const std::shared_ptr<ITesterComponent> & tester) = 0;
+
+  virtual void unregister_tester(const std::string & component_id) = 0;
+
+  virtual std::vector<TesterHandle> list_testers() const = 0;
+
+  virtual std::shared_ptr<ITesterComponent> get_tester(const std::string & component_id) const = 0;
+};
+
+class SelfTestRegistry : public ISelfTestRegistry
+{
+public:
   void register_tester(
     const std::string & component_id,
-    const std::shared_ptr<ITesterComponent> & tester);
+    const std::shared_ptr<ITesterComponent> & tester) override;
 
-  void unregister_tester(const std::string & component_id);
+  void unregister_tester(const std::string & component_id) override;
 
-  std::vector<TesterHandle> list_testers() const;
+  std::vector<TesterHandle> list_testers() const override;
 
   //this function handles the locking logic for the weak pointer and intentionally returns the
   //pointer to the ITesterComponent directly without the metadata in TestHandle
-  std::shared_ptr<ITesterComponent> get_tester(const std::string & component_id) const;
+  std::shared_ptr<ITesterComponent> get_tester(const std::string & component_id) const override;
 
 private:
   mutable std::mutex mutex_;

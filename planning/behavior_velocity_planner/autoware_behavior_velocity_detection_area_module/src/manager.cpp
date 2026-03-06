@@ -19,8 +19,6 @@
 #include <autoware_utils/ros/parameter.hpp>
 #include <tf2/utils.hpp>
 
-#include <autoware_self_test_infrastructure/self_test_service.hpp>
-
 #include <limits>
 #include <memory>
 #include <set>
@@ -34,17 +32,15 @@ namespace autoware::behavior_velocity_planner
 using autoware_utils::get_or_declare_parameter;
 using lanelet::autoware::DetectionArea;
 
-DetectionAreaModuleManager::DetectionAreaModuleManager(rclcpp::Node & node)
+DetectionAreaModuleManager::DetectionAreaModuleManager(
+  rclcpp::Node & node,
+  const std::shared_ptr<autoware_self_test_infrastructure::ISelfTestRegistry> &
+    self_test_registry)
 : SceneModuleManagerInterfaceWithRTC(
-    node, getModuleName(), getEnableRTC(node, std::string(getModuleName()) + ".enable_rtc"))
+    node, getModuleName(), getEnableRTC(node, std::string(getModuleName()) + ".enable_rtc")),
+  self_test_registry_(self_test_registry)
 {
   const std::string ns(DetectionAreaModuleManager::getModuleName());
-
-  // Create the self-test ROS service in this process.
-  static std::unique_ptr<autoware_self_test_infrastructure::SelfTestService> self_test_service;
-  if (!self_test_service) {
-    self_test_service = std::make_unique<autoware_self_test_infrastructure::SelfTestService>(node);
-  }
 
   planner_param_.stop_margin = get_or_declare_parameter<double>(node, ns + ".stop_margin");
   planner_param_.use_dead_line = get_or_declare_parameter<bool>(node, ns + ".use_dead_line");
@@ -113,7 +109,7 @@ void DetectionAreaModuleManager::launchNewModules(
         std::make_shared<DetectionAreaModule>(
           module_id, lane_id, *detection_area_with_lane_id.first, planner_param_,
           logger_.get_child("detection_area_module"), clock_, time_keeper_,
-          planning_factor_interface_));
+          planning_factor_interface_, self_test_registry_));
       generate_uuid(module_id);
       updateRTCStatus(
         getUUID(module_id), true, State::WAITING_FOR_EXECUTION,

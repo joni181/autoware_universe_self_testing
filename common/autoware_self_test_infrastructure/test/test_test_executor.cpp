@@ -71,7 +71,7 @@ private:
 
 TEST(test_executor, executes_all_test_cases_from_all_registered_testers)
 {
-  auto & registry = infra::SelfTestRegistry::instance();
+  infra::SelfTestRegistry registry;
   RegistryCleanup cleanup(registry);
 
   const auto id_a = unique_id("executor_component_a");

@@ -23,7 +23,7 @@
 namespace autoware_self_test_infrastructure
 {
 
-SelfTestController::SelfTestController(SelfTestRegistry & registry)
+SelfTestController::SelfTestController(ISelfTestRegistry & registry)
 : executor_(registry), evaluator_(ValidationPolicy{}), reporter_()
 {
 }
