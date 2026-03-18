@@ -92,6 +92,11 @@ DetectionAreaModuleManager::DetectionAreaModuleManager(
     get_or_declare_parameter<bool>(node, ns + ".target_filtering.over_drivable");
   planner_param_.target_filtering.under_drivable =
     get_or_declare_parameter<bool>(node, ns + ".target_filtering.under_drivable");
+
+  // Self-test parameters (dynamic, used only by the test harness)
+  if (!node.has_parameter(ns + ".self_test.perception_offset_m")) {
+    node.declare_parameter<double>(ns + ".self_test.perception_offset_m", 0.0);
+  }
 }
 
 void DetectionAreaModuleManager::launchNewModules(
@@ -109,7 +114,7 @@ void DetectionAreaModuleManager::launchNewModules(
         std::make_shared<DetectionAreaModule>(
           module_id, lane_id, *detection_area_with_lane_id.first, planner_param_,
           logger_.get_child("detection_area_module"), clock_, time_keeper_,
-          planning_factor_interface_, self_test_registry_));
+          planning_factor_interface_, self_test_registry_, &node_));
       generate_uuid(module_id);
       updateRTCStatus(
         getUUID(module_id), true, State::WAITING_FOR_EXECUTION,

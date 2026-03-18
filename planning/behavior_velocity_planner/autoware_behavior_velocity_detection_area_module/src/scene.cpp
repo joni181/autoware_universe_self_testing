@@ -66,6 +66,7 @@ public:
       s.current_velocity_mps = module_.planner_data_->current_velocity->twist.linear.x;
     }
 
+    s.detection_areas = module_.detection_area_reg_elem_.detectionAreas();
     s.no_ground_pointcloud = module_.planner_data_->no_ground_pointcloud;
     s.predicted_objects = module_.planner_data_->predicted_objects;
     observe_dynamic_objects(s.predicted_objects, s.capture_time);
@@ -142,6 +143,33 @@ public:
       path, original_path, stop_pose, modified_stop_pose, modified_stop_line_seg_idx, self_pose,
       current_velocity, stop_dist, detection_source);
   }
+
+  lanelet::ConstPolygons3d get_detection_areas() const override
+  {
+    return module_.detection_area_reg_elem_.detectionAreas();
+  }
+
+  std::optional<autoware_perception_msgs::msg::PredictedObject> run_obstacle_detection(
+    const autoware_perception_msgs::msg::PredictedObjects & objects) const override
+  {
+    return detection_area::get_detected_object(
+      module_.detection_area_reg_elem_.detectionAreas(), objects,
+      module_.planner_param_.target_filtering);
+  }
+
+  double get_self_test_perception_offset() const override
+  {
+    if (!module_.node_ptr_) {
+      return 0.0;
+    }
+    try {
+      return module_.node_ptr_->get_parameter("detection_area.self_test.perception_offset_m")
+        .get_value<double>();
+    } catch (const rclcpp::exceptions::ParameterNotDeclaredException &) {
+      return 0.0;
+    }
+  }
+
 private:
   static DetectionAreaModule::State toModuleState(const IDetectionAreaTestable::State s)
   {
@@ -173,9 +201,11 @@ DetectionAreaModule::DetectionAreaModule(
   const rclcpp::Clock::SharedPtr clock,
   const std::shared_ptr<autoware_utils::TimeKeeper> time_keeper,
   const std::shared_ptr<planning_factor_interface::PlanningFactorInterface> planning_factor_interface,
-  const std::shared_ptr<autoware_self_test_infrastructure::ISelfTestRegistry> & self_test_registry)
+  const std::shared_ptr<autoware_self_test_infrastructure::ISelfTestRegistry> & self_test_registry,
+  rclcpp::Node * node)
 : SceneModuleInterfaceWithRTC(module_id, logger, clock, time_keeper, planning_factor_interface),
   self_test_registry_(self_test_registry),
+  node_ptr_(node),
   lane_id_(lane_id),
   detection_area_reg_elem_(detection_area_reg_elem),
   state_(State::GO),

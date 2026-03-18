@@ -23,6 +23,8 @@
 #include <optional>
 
 #include <autoware_perception_msgs/msg/predicted_objects.hpp>
+
+#include <lanelet2_core/primitives/Polygon.h>
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
 
@@ -44,6 +46,9 @@ struct DetectionAreaSnapshot
   double current_velocity_mps{0.0};
   bool pointcloud_detection_enabled{true};
   DynamicObjectsState dynamic_objects{};
+
+  // Detection area geometry from the lanelet map (lightweight references)
+  lanelet::ConstPolygons3d detection_areas;
 
   // Keep shared_ptr to message snapshots (immutable)
   // We may need deep copies later -> copy the message objects

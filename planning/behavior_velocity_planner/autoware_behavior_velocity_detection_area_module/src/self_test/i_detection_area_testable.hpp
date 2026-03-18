@@ -18,10 +18,15 @@
 #include "detection_area_snapshot.hpp"
 
 #include <autoware_internal_planning_msgs/msg/path_with_lane_id.hpp>
+#include <autoware_perception_msgs/msg/predicted_object.hpp>
+#include <autoware_perception_msgs/msg/predicted_objects.hpp>
 #include <geometry_msgs/msg/point.hpp>
 #include <geometry_msgs/msg/pose.hpp>
 
+#include <lanelet2_core/primitives/Polygon.h>
+
 #include <cstddef>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -73,6 +78,16 @@ public:
     double current_velocity,
     double stop_dist,
     const std::string & detection_source) = 0;
+
+  /// @brief Get the detection area polygons from the lanelet regulatory element
+  virtual lanelet::ConstPolygons3d get_detection_areas() const = 0;
+
+  /// @brief Run the module's obstacle detection logic on the given predicted objects
+  virtual std::optional<autoware_perception_msgs::msg::PredictedObject> run_obstacle_detection(
+    const autoware_perception_msgs::msg::PredictedObjects & objects) const = 0;
+
+  /// @brief Read the self-test perception offset parameter (dynamic, for fault injection demo)
+  virtual double get_self_test_perception_offset() const = 0;
 };
 }  // namespace autoware::behavior_velocity_planner
 

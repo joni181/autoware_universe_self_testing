@@ -106,7 +106,8 @@ public:
     const std::shared_ptr<autoware_utils::TimeKeeper> time_keeper,
     const std::shared_ptr<planning_factor_interface::PlanningFactorInterface> planning_factor_interface,
     const std::shared_ptr<autoware_self_test_infrastructure::ISelfTestRegistry> &
-      self_test_registry);
+      self_test_registry,
+    rclcpp::Node * node = nullptr);
 
   //=== self-testing changes ===
 
@@ -143,6 +144,7 @@ private:
   std::shared_ptr<TesterComponent> tester_component_;
   std::string self_test_component_id_;
   std::shared_ptr<autoware_self_test_infrastructure::ISelfTestRegistry> self_test_registry_;
+  rclcpp::Node * node_ptr_{nullptr};  // for self-test dynamic parameter access
 
   //============================
 

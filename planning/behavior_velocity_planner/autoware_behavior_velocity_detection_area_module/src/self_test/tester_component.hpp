@@ -45,6 +45,7 @@ public:
     types::TestResult test_pointcloud_obstacle();
     types::TestResult test_respect_stop_margin();
     types::TestResult test_restart_prevention();
+    types::TestResult test_detection_area_geometric_misfit();
     // ...
 
 private:

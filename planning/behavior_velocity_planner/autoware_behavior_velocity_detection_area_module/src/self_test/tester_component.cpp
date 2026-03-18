@@ -15,10 +15,17 @@
 #include "tester_component.hpp"
 
 #include <autoware_internal_planning_msgs/msg/path_with_lane_id.hpp>
+#include <autoware_perception_msgs/msg/object_classification.hpp>
+#include <autoware_perception_msgs/msg/predicted_object.hpp>
+#include <autoware_perception_msgs/msg/predicted_objects.hpp>
+#include <autoware_perception_msgs/msg/shape.hpp>
 #include <rclcpp/duration.hpp>
+
+#include <lanelet2_core/geometry/Polygon.h>
 
 #include <algorithm>
 #include <chrono>
+#include <cmath>
 #include <cstdint>
 #include <memory>
 #include <thread>
@@ -115,6 +122,7 @@ void TesterComponent::register_test_cases()
   add("test_pointcloud_obstacle", &TesterComponent::test_pointcloud_obstacle);
   add("test_respect_stop_margin", &TesterComponent::test_respect_stop_margin);
   add("test_restart_prevention", &TesterComponent::test_restart_prevention);
+  add("test_detection_area_geometric_misfit", &TesterComponent::test_detection_area_geometric_misfit);
 }
 
 // ----------
@@ -202,6 +210,84 @@ types::TestResult TesterComponent::test_respect_stop_margin()
 types::TestResult TesterComponent::test_restart_prevention()
 {
   return pass_result();
+}
+
+types::TestResult TesterComponent::test_detection_area_geometric_misfit()
+{
+  // 1. Get detection area polygons from the lanelet map
+  const auto detection_areas = detection_area_testable_.get_detection_areas();
+  if (detection_areas.empty()) {
+    return skip_result({
+      {"reason", "No detection area polygons available from the regulatory element."}});
+  }
+
+  // 2. Compute centroid of the first detection area polygon
+  const auto & poly = detection_areas.front();
+  if (poly.size() < 3) {
+    return skip_result({
+      {"reason", "Detection area polygon has fewer than 3 vertices."},
+      {"vertex_count", std::to_string(poly.size())}});
+  }
+
+  double cx = 0.0, cy = 0.0, cz = 0.0;
+  for (const auto & pt : poly) {
+    cx += pt.x();
+    cy += pt.y();
+    cz += pt.z();
+  }
+  const double n = static_cast<double>(poly.size());
+  cx /= n;
+  cy /= n;
+  cz /= n;
+
+  // 3. Read perception offset parameter (for fault injection demo)
+  const double offset = detection_area_testable_.get_self_test_perception_offset();
+
+  // Apply offset to the x-coordinate of the centroid
+  const double injected_x = cx + offset;
+  const double injected_y = cy;
+
+  // 4. Create a synthetic PredictedObject at the (possibly offset) centroid
+  autoware_perception_msgs::msg::PredictedObjects synthetic_objects;
+
+  autoware_perception_msgs::msg::PredictedObject obj;
+  obj.kinematics.initial_pose_with_covariance.pose.position.x = injected_x;
+  obj.kinematics.initial_pose_with_covariance.pose.position.y = injected_y;
+  obj.kinematics.initial_pose_with_covariance.pose.position.z = cz;
+  obj.kinematics.initial_pose_with_covariance.pose.orientation.w = 1.0;
+
+  // Give it a small box shape (1m x 1m x 1m) so the polygon intersection works
+  obj.shape.type = autoware_perception_msgs::msg::Shape::BOUNDING_BOX;
+  obj.shape.dimensions.x = 1.0;
+  obj.shape.dimensions.y = 1.0;
+  obj.shape.dimensions.z = 1.0;
+
+  // Classify as UNKNOWN (a commonly enabled filter class)
+  autoware_perception_msgs::msg::ObjectClassification cls;
+  cls.label = autoware_perception_msgs::msg::ObjectClassification::UNKNOWN;
+  cls.probability = 1.0;
+  obj.classification.push_back(cls);
+
+  synthetic_objects.objects.push_back(obj);
+
+  // 5. Run the module's obstacle detection on the synthetic object
+  const auto detected = detection_area_testable_.run_obstacle_detection(synthetic_objects);
+
+  // 6. Evaluate
+  if (detected.has_value()) {
+    return pass_result();
+  }
+
+  return fail_result({
+    {"reason",
+     "Synthetic object placed at detection area centroid was NOT detected by the module's "
+     "obstacle detection logic. This indicates a geometric misfit between perception output "
+     "and the map's detection area polygon."},
+    {"centroid_x", std::to_string(cx)},
+    {"centroid_y", std::to_string(cy)},
+    {"injected_x", std::to_string(injected_x)},
+    {"injected_y", std::to_string(injected_y)},
+    {"perception_offset_m", std::to_string(offset)}});
 }
 
 }  // namespace autoware::behavior_velocity_planner
