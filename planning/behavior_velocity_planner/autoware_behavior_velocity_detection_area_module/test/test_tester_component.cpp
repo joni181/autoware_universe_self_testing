@@ -96,6 +96,22 @@ public:
     ADD_FAILURE() << "handleUnstoppableStopAfterLinePolicy() should not be called by dummy TesterComponent tests.";
     return false;
   }
+
+  lanelet::ConstPolygons3d get_detection_areas() const override
+  {
+    return {};
+  }
+
+  std::optional<autoware_perception_msgs::msg::PredictedObject> run_obstacle_detection(
+    const autoware_perception_msgs::msg::PredictedObjects & /*objects*/) const override
+  {
+    return std::nullopt;
+  }
+
+  double get_self_test_perception_offset() const override
+  {
+    return 0.0;
+  }
 };
 
 TEST(detection_area_tester_component, registers_cases_and_invokes)
