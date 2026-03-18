@@ -112,6 +112,11 @@ public:
   {
     return 0.0;
   }
+
+  std::optional<uint8_t> get_first_enabled_object_label() const override
+  {
+    return std::nullopt;
+  }
 };
 
 TEST(detection_area_tester_component, registers_cases_and_invokes)

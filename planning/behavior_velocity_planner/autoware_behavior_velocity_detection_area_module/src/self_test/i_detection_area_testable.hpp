@@ -88,6 +88,9 @@ public:
 
   /// @brief Read the self-test perception offset parameter (dynamic, for fault injection demo)
   virtual double get_self_test_perception_offset() const = 0;
+
+  /// @brief Return the label of the first enabled predicted-object class, or nullopt if none
+  virtual std::optional<uint8_t> get_first_enabled_object_label() const = 0;
 };
 }  // namespace autoware::behavior_velocity_planner
 

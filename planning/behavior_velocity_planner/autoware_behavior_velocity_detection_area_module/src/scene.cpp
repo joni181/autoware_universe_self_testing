@@ -170,6 +170,25 @@ public:
     }
   }
 
+  std::optional<uint8_t> get_first_enabled_object_label() const override
+  {
+    using autoware_perception_msgs::msg::ObjectClassification;
+    const auto & f = module_.planner_param_.target_filtering;
+    if (f.unknown) return ObjectClassification::UNKNOWN;
+    if (f.car) return ObjectClassification::CAR;
+    if (f.truck) return ObjectClassification::TRUCK;
+    if (f.bus) return ObjectClassification::BUS;
+    if (f.trailer) return ObjectClassification::TRAILER;
+    if (f.motorcycle) return ObjectClassification::MOTORCYCLE;
+    if (f.bicycle) return ObjectClassification::BICYCLE;
+    if (f.pedestrian) return ObjectClassification::PEDESTRIAN;
+    if (f.animal) return ObjectClassification::ANIMAL;
+    if (f.hazard) return ObjectClassification::HAZARD;
+    if (f.over_drivable) return ObjectClassification::OVER_DRIVABLE;
+    if (f.under_drivable) return ObjectClassification::UNDER_DRIVABLE;
+    return std::nullopt;
+  }
+
 private:
   static DetectionAreaModule::State toModuleState(const IDetectionAreaTestable::State s)
   {

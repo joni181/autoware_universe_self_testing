@@ -114,31 +114,13 @@ void TesterComponent::register_test_cases()
     };
   };
 
-  add("test_no_detection_area", &TesterComponent::test_no_detection_area);
-  add("test_activated_no_obstacles", &TesterComponent::test_activated_no_obstacles);
   add("test_predicted_objects_provider_available", &TesterComponent::test_predicted_objects_provider_available);
-  add("test_predicted_object", &TesterComponent::test_predicted_object);
-  add("test_predicted_object_class_disabled", &TesterComponent::test_predicted_object_class_disabled);
-  add("test_pointcloud_obstacle", &TesterComponent::test_pointcloud_obstacle);
-  add("test_respect_stop_margin", &TesterComponent::test_respect_stop_margin);
-  add("test_restart_prevention", &TesterComponent::test_restart_prevention);
   add("test_detection_area_geometric_misfit", &TesterComponent::test_detection_area_geometric_misfit);
 }
 
 // ----------
 // Test cases
 // ----------
-
-types::TestResult TesterComponent::test_no_detection_area()
-{
-  (void)detection_area_testable_.capture_snapshot(make_empty_path());
-  return pass_result();
-}
-
-types::TestResult TesterComponent::test_activated_no_obstacles()
-{
-  return pass_result();
-}
 
 types::TestResult TesterComponent::test_predicted_objects_provider_available()
 {
@@ -187,31 +169,6 @@ types::TestResult TesterComponent::test_predicted_objects_provider_available()
   return pass_result();
 }
 
-types::TestResult TesterComponent::test_predicted_object()
-{
-  return pass_result();
-}
-
-types::TestResult TesterComponent::test_predicted_object_class_disabled()
-{
-  return pass_result();
-}
-
-types::TestResult TesterComponent::test_pointcloud_obstacle()
-{
-  return pass_result();
-}
-
-types::TestResult TesterComponent::test_respect_stop_margin()
-{
-  return pass_result();
-}
-
-types::TestResult TesterComponent::test_restart_prevention()
-{
-  return pass_result();
-}
-
 types::TestResult TesterComponent::test_detection_area_geometric_misfit()
 {
   // 1. Get detection area polygons from the lanelet map
@@ -240,14 +197,24 @@ types::TestResult TesterComponent::test_detection_area_geometric_misfit()
   cy /= n;
   cz /= n;
 
-  // 3. Read perception offset parameter (for fault injection demo)
+  // 3. Determine which object class to use for the synthetic object
+  const auto enabled_label = detection_area_testable_.get_first_enabled_object_label();
+  if (!enabled_label.has_value()) {
+    return skip_result({
+      {"reason",
+       "No predicted-object class is enabled in target_filtering. "
+       "The module is configured for pointcloud-only detection; "
+       "geometric misfit test for predicted objects does not apply."}});
+  }
+
+  // 4. Read perception offset parameter (for fault injection demo)
   const double offset = detection_area_testable_.get_self_test_perception_offset();
 
   // Apply offset to the x-coordinate of the centroid
   const double injected_x = cx + offset;
   const double injected_y = cy;
 
-  // 4. Create a synthetic PredictedObject at the (possibly offset) centroid
+  // 5. Create a synthetic PredictedObject at the (possibly offset) centroid
   autoware_perception_msgs::msg::PredictedObjects synthetic_objects;
 
   autoware_perception_msgs::msg::PredictedObject obj;
@@ -262,18 +229,18 @@ types::TestResult TesterComponent::test_detection_area_geometric_misfit()
   obj.shape.dimensions.y = 1.0;
   obj.shape.dimensions.z = 1.0;
 
-  // Classify as UNKNOWN (a commonly enabled filter class)
+  // Classify with the first enabled object class
   autoware_perception_msgs::msg::ObjectClassification cls;
-  cls.label = autoware_perception_msgs::msg::ObjectClassification::UNKNOWN;
+  cls.label = enabled_label.value();
   cls.probability = 1.0;
   obj.classification.push_back(cls);
 
   synthetic_objects.objects.push_back(obj);
 
-  // 5. Run the module's obstacle detection on the synthetic object
+  // 6. Run the module's obstacle detection on the synthetic object
   const auto detected = detection_area_testable_.run_obstacle_detection(synthetic_objects);
 
-  // 6. Evaluate
+  // 7. Evaluate
   if (detected.has_value()) {
     return pass_result();
   }
